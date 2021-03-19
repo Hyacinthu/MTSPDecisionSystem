@@ -41,6 +41,8 @@ class City:
 #   balance_factor：平衡系数，f2(X)，X代指染色体集合
 #   nds_factor：非支配排序中需要的两个参数集合，n(np)和s(sp)；n为支配计数，s为该个体所支配的其他个体集合
 #   d：每个染色体中每个旅行商的路程集合
+#   rank_list：非支配排序后的集合
+#   rank：非支配排序后每个染色体对应的等级
 class Population:
     #初始化种群
     def __init__(self, size, n, m):
@@ -54,6 +56,8 @@ class Population:
         self.d = []
         self.np = []
         self.sp = []
+        self.rank_list = []
+        self.rank = []
         #产生第0代种群
         for i in range(self.size):
             chrom2 = []
@@ -102,22 +106,59 @@ class Population:
 
     #快速非支配排序算子
     def fast_nondominated_sort(self):
-        self.n = [[] for i in range(self.size)]     #n为支配计数(被支配)
+        self.n = [0 for i in range(self.size)]     #n为支配计数(被支配)
         self.s = [[] for i in range(self.size)]     #s为该个体所支配的其他个体集合
+        self.rank_list = []     #rank_list为非支配排序后的集合
+        temp = []
+        self.rank = [0 for i in range(self.size)]   #rank为非支配排序后每个染色体对应的等级
 
-        #计算np和sp
+        #计算np和sp(i,j,k,l均为计数变量)
         k = self.size-1
         for i in range(self.size-1):
             l = self.size-k
             for j in range(k):
-                if self.total_d[i] < self.total_d[l] & self.balance_factor[i] < self.balance_factor[l]:     #第i个染色体支配第l个染色体
+                if self.total_d[i] < self.total_d[l] and self.balance_factor[i] < self.balance_factor[l]:     #第i个染色体支配第l个染色体
+                    self.n[l] += 1
+                    self.s[i].append(l)
+                elif self.total_d[i] > self.total_d[l] and self.balance_factor[i] > self.balance_factor[l]:    #第i个染色体被第l个染色体支配
+                    self.n[i] += 1
+                    self.s[l].append(i)
+                l += 1
+            k -= 1
+        #测试
+        #print(self.n)
+        #print(self.s)
+        #sort and rank
+        times = max(self.n)
+        time = 0
+        while time < times:
+            for i in range(self.size):
+                if self.n[i] == 0:
+                    temp.append(i)
+                    self.n[i] -= 1
+            if len(temp) == 0:
+                time += 1
+                continue
+            self.rank_list.append(temp)
+            for chrom_dominating in temp:
+                for chrom_dominated in self.s[chrom_dominating]:
+                    self.n[chrom_dominated] -= 1
+            temp = []
+            time += 1
+        #测试
+        #print(self.rank_list)
+        for i in range(len(self.rank_list)):
+            for chrom in self.rank_list[i]:
+                self.rank[chrom] = i
+        #测试
+        #print(self.rank)
 
 
 if __name__ == '__main__':
     #测试代码
-    N = 4  #染色体数目
-    n = 10 #城市数目
-    m = 3  #旅行商数目
+    N = 16  #染色体数目
+    n = 78 #城市数目
+    m = 24  #旅行商数目
     city = City(n)
     for i in range(n):
         city.individuals.append([random.randint(0, 100), random.randint(0, 100)])
@@ -132,5 +173,6 @@ if __name__ == '__main__':
     p.f1(city)
     print(p.total_d)
     print(p.balance_factor)
+    p.fast_nondominated_sort()
 
 
