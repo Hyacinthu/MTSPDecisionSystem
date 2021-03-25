@@ -2,9 +2,11 @@
 
 import math
 import random
+from filecmp import cmp
 
 #城市类
 #属性：
+
 class City:
     def __init__(self, n):
         self.individuals = []
@@ -66,33 +68,33 @@ class Population:
         for i in range(self.size):  #问题：也可以出现相同的染色体，出现冗余
             chrom2 = []
             chrom1 = random.sample(range(1, self.n), self.n - 1)
-            chrom2 = random.sample(range(0, self.n - 2), self.m - 1)
+            chrom2 = random.sample(range(0, self.n - 3), self.m - 1)
             chrom2.sort()
             chrom = chrom1 + chrom2
             self.individuals.append(chrom)
 
     #总路程算子
-    def f1(self, city):
+    def f1(self, city, chroms):     #chroms为任意染色体集合
         self.total_d = []
         self.balance_factor = []
         sum = 0
-        for chrom in self.individuals[0:self.n-1]:
+        for chrom in chroms:
             psum = 0
             ppoint = 0
             po = self.n - 1
             dpoint = chrom[chrom[po]]
-            for point in chrom:
-                if point == ppoint:
-                    break
+            for point in chrom[0:self.n-1]:
                 sum += city.x_y_find_i(ppoint, point)
                 ppoint = point
                 if ppoint == dpoint:
                     sum += city.x_y_find_i(ppoint, 0)
                     if po < self.m + self.n - 3:
                         po += 1
+                        dpoint = chrom[chrom[po]]
                     self.d.append(sum - psum)
                     psum = sum
                     ppoint = 0
+            sum += city.x_y_find_i(point, 0)
             self.total_d.append(sum)
             self.d.append(sum - psum)
             sum = 0
@@ -104,16 +106,16 @@ class Population:
         self.balance_factor.append(max(self.d) - min(self.d))
 
     #快速非支配排序算子
-    def fast_nondominated_sort(self):
-        self.np = [0 for i in range(self.size)]     #n为支配计数(被支配)
-        self.sp = [[] for i in range(self.size)]     #s为该个体所支配的其他个体集合
+    def fast_nondominated_sort(self, chroms_size):      # chroms_size不一定要么为N，要么为2N
+        self.np = [0 for i in range(chroms_size)]     #n为支配计数(被支配)
+        self.sp = [[] for i in range(chroms_size)]     #s为该个体所支配的其他个体集合
         self.rank_list = []     #rank_list为非支配排序后的集合
         temp = []
-        self.rank = [0 for i in range(self.size)]   #rank为非支配排序后每个染色体对应的等级
+        self.rank = [0 for i in range(chroms_size)]   #rank为非支配排序后每个染色体对应的等级
         #计算np和sp(i,j,k,l均为计数变量)
-        k = self.size-1
-        for i in range(self.size-1):
-            l = self.size-k
+        k = chroms_size-1
+        for i in range(chroms_size-1):
+            l = chroms_size-k
             for j in range(k):
                 if self.total_d[i] < self.total_d[l] and self.balance_factor[i] < self.balance_factor[l]:     #第i个染色体支配第l个染色体
                     self.np[l] += 1
@@ -128,7 +130,7 @@ class Population:
         print(self.sp)
         #sort and rank
         while self.np.count(0) != 0:     #如果np的列表里依然存在0项，即还未全部变为0以下的数，就继续循环（ps：在未结束之前均存在0项，易证）
-            for i in range(self.size):  #循环搜索0项，归入temp列表
+            for i in range(chroms_size):  #循环搜索0项，归入temp列表
                 if self.np[i] == 0:
                     temp.append(i)
                     self.np[i] -= 1
@@ -148,7 +150,9 @@ class Population:
     #To produce unshaped offspring:selection, crossover and mutation
     def unshaped_evolution(self):
         self.unsQ = []
-        while len(self.unsQ) != self.size:
+        self.unsQ += self.individuals
+        i = 0
+        while i < self.size * 2:
             sampleQ = random.sample(range(0, self.size), int(self.size/2))
             srank = []
             for sq in sampleQ:
@@ -163,12 +167,28 @@ class Population:
                     break
             for sq in sampleQ:
                 if self.rank[sq] == rank2:
+                    if sq == sq1_num:
+                        continue
                     sq2_num = sq
                     sq2 = self.individuals[sq2_num]
                     break
-            (unsq1, unsq2) = self.crossover(sq1, sq2)
-            self.unsQ.append(unsq1)
-            self.unsQ.append(unsq2)
+            sq1_copy = sq1.copy()
+            sq2_copy = sq2.copy()
+            (unsq1, unsq2) = self.crossover(sq1_copy, sq2_copy)
+            # 规避有相同形状的个体，去掉未变异个体
+            for i in range(0, len(unsq1)):
+                if sq1[i] == unsq1[i]:
+                    pass
+                else:
+                    self.unsQ.append(unsq1)
+                    break
+            for i in range(0, len(unsq2)):
+                if sq2[i] == unsq2[i]:
+                    pass
+                else:
+                    self.unsQ.append(unsq2)
+                    break
+            i += 1
 
     #交叉
     def crossover(self, chrom1, chrom2):
@@ -187,19 +207,21 @@ class Population:
         # 交叉部分
         p = random.random()
         if p > 0.5:
-            pos = random.randint(self.n-1, self.n+self.m-3)
-            back_pos = pos - (self.n-1)
             back_chrom1 = chrom1[self.n-1:self.n+self.m-2]
             back_chrom2 = chrom2[self.n-1:self.n+self.m-2]
-            t = back_chrom1[back_pos]
-            back_chrom1[back_pos] = back_chrom2[back_pos]
-            back_chrom2[back_pos] = t
-            if back_chrom1.count(back_chrom1[back_pos]) > 1 or back_chrom2.count(back_chrom2[back_pos]) > 1:
-                print("非法突变，已拦截")
+            mset = self.whether_intersect(back_chrom1, back_chrom2)
+            if len(mset) == 0:
+                print("交叉失败！！！")
+                return (chrom1, chrom2)
             else:
-                t = chrom1[pos]
-                chrom1[pos] = chrom2[pos]
-                chrom2[pos] = t
+                sp = mset[random.randint(0, len(mset)-1)]
+                # 测试
+                # print("sp:")
+                # print(sp)
+                sp += self.n-1
+                t = chrom1[sp]
+                chrom1[sp] = chrom2[sp]
+                chrom2[sp] = t
         return (chrom1, chrom2)
 
     #变异
@@ -222,21 +244,15 @@ class Population:
                 chrom[ex_el[1]] = t
                 return chrom
             else:   #后段突变，需要优化，目前就直接随机数覆盖
-                back_chrom = chrom[self.n-1:self.n+self.m-2]     #后段
-                position = random.randint(self.n-1, self.m + self.n - 3)    #整个染色体的突变位置
-                mp = position - (self.n - 1)    #后段对应的位置
-                change = random.randint(0, self.n-2)
+                back_chrom = chrom[self.n-1:self.n+self.m-2]     #提取后段
+                mp = random.randint(0, self.m-2)    #后段突变的位置
+                # 测试
+                # print("mp:")
+                # print(mp)
+                mset = self.produce_mutation_set(self.n - 2, back_chrom)    #可行的前段序号集合
+                sp = random.randint(0, len(mset)-1)
+                change = mset[sp]
                 back_chrom[mp] = change
-                i = 0
-                while back_chrom.count(change) == 2:
-                    change = random.randint(0, self.n-2)
-                    back_chrom[mp] = change
-                    i += 1
-                    if i == 3:
-                        break
-                if i == 3:
-                    print("非法突变，已拦截")
-                    return chrom
                 #反着的情况，要调换一下
                 back_chrom.sort()
                 chrom[self.n-1:self.n+self.m-2] = back_chrom
@@ -244,10 +260,56 @@ class Population:
         else:
             return chrom
 
+    # 产生新子代，即新父种群
+    def produce_newf(self, city):
+        self.f1(city, self.unsQ)
+        self.fast_nondominated_sort(len(self.unsQ))
+        print(self.total_d)
+        print(self.balance_factor)
+
+    # Tools
+    # 集合取反
+    def produce_mutation_set(self, num, list):     #num为可行范围，即全集的长度
+        set = []
+        for i in range(num):
+            set.append(i)
+        for e in list:
+            if list.count(e) > 1:
+                list.remove(e)
+                continue
+            set.remove(e)
+        return set
+
+    # 判断两个集合是否有交集，并返回可突变集合
+    def whether_intersect(self, list1, list2):
+        set1 = set(list1)
+        set2 = set(list2)
+        intersection = set1 & set2
+        if len(intersection) == 0:      #无交集
+            l = []
+            for i in range(len(list1)):
+                l.append(i)
+            return l
+        else:
+            intersection_list = list(intersection)  #交集
+            inum = []
+            for e in intersection_list:
+                for i in range(len(list1)):
+                    if(list1[i] == e):
+                        inum.append(i)
+                for i in range(len(list2)):
+                    if(list2[i] == e):
+                        inum.append(i)
+            s = self.produce_mutation_set(self.m-1, inum)
+            # 测试
+            # print("set:")
+            # print(s)
+            return s
+
 if __name__ == '__main__':
     #测试代码
-    N = 6  #染色体数目
-    n = 10 #城市数目
+    N = 8  #染色体数目
+    n = 20 #城市数目
     m = 4  #旅行商数目
     city = City(n)
     for i in range(n):
@@ -260,11 +322,12 @@ if __name__ == '__main__':
     #print(d)
     p = Population(N, n, m)
     print(p.individuals)
-    p.f1(city)      #计算两个目标函数的值
+    p.f1(city, p.individuals)      #计算两个目标函数的值
     print(p.total_d)
     print(p.balance_factor)
-    p.fast_nondominated_sort()  #快速非支配选择
+    p.fast_nondominated_sort(p.size)  #快速非支配选择
     p.unshaped_evolution()    #二元竞赛选择
     print(p.unsQ)
-
+    print(len(p.unsQ))
+    p.produce_newf(city)
 
