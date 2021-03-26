@@ -2,7 +2,7 @@
 
 import math
 import random
-from filecmp import cmp
+import matplotlib.pyplot as plt
 
 # 城市类
 # 属性：
@@ -218,13 +218,13 @@ class Population:
                 return (chrom1, chrom2)
             else:
                 sp = mset[random.randint(0, len(mset)-1)]
-                # 测试
-                # print("sp:")
-                # print(sp)
-                sp += self.n-1
-                t = chrom1[sp]
-                chrom1[sp] = chrom2[sp]
-                chrom2[sp] = t
+                t = back_chrom1[sp]
+                back_chrom1[sp] = back_chrom2[sp]
+                back_chrom2[sp] = t
+                back_chrom1.sort()
+                back_chrom2.sort()
+                chrom1[self.n-1:self.n+self.m-2] = back_chrom1
+                chrom2[self.n-1:self.n+self.m-2] = back_chrom2
         return (chrom1, chrom2)
 
     # 变异
@@ -241,7 +241,7 @@ class Population:
             else:   # 后段突变，需要优化，目前就直接随机数覆盖
                 back_chrom = chrom[self.n-1:self.n+self.m-2]     # 提取后段
                 mp = random.randint(0, self.m-2)    # 后段突变的位置
-                mset = self.produce_mutation_set(self.n - 2, back_chrom)    # 可行的前段序号集合
+                mset = self.produce_mutation_set(self.n - 2, back_chrom.copy())    # 可行的前段序号集合
                 sp = random.randint(0, len(mset)-1)
                 change = mset[sp]
                 back_chrom[mp] = change
@@ -277,22 +277,29 @@ class Population:
             b_factor.append(self.balance_factor[chrom_num[0]])
         # print("平衡系数：")
         # print(b_factor)
-        self.crowding_distance[0].append(444444444444)
-        self.crowding_distance[len(self.crowding_distance)-1].append(4444444444444)
-        for i in range(len(self.crowding_distance)):
-            if len(self.crowding_distance[i]) == 1:
-                f1_d = max(total_distance) - min(total_distance)
-                f2_d = max(b_factor) - min(b_factor)
-                front = self.crowding_distance[i-1][0]
-                back = self.crowding_distance[i+1][0]
-                cd = (self.total_d[back] - self.total_d[front])/f1_d + (self.balance_factor[front] - self.balance_factor[back])/f2_d
-                self.crowding_distance[i].append(cd)
-        # print(self.crowding_distance)
+        f1_d = max(total_distance) - min(total_distance)
+        f2_d = max(b_factor) - min(b_factor)
+        if f1_d == 0 and f2_d != 0:
+            for e in self.crowding_distance:
+                e.append(self.balance_factor[e[0]])
+        elif f1_d != 0 and f2_d == 0:
+            for e in self.crowding_distance:
+                e.append(self.total_d[e[0]])
+        elif f1_d != 0 and f2_d != 0:
+            self.crowding_distance[0].append(444444444444)
+            self.crowding_distance[len(self.crowding_distance)-1].append(4444444444444)
+            for i in range(len(self.crowding_distance)):
+                if len(self.crowding_distance[i]) == 1:
+                    front = self.crowding_distance[i-1][0]
+                    back = self.crowding_distance[i+1][0]
+                    cd = (self.total_d[back] - self.total_d[front])/f1_d + (self.balance_factor[front] - self.balance_factor[back])/f2_d
+                    self.crowding_distance[i].append(cd)
+        else:
+            for e in self.crowding_distance:
+                e.append(0)
         self.QuickSort(self.crowding_distance, 0, len(self.crowding_distance)-1)
-        # print(self.crowding_distance)
         for i in range(miss_num):
             self.crowding_sorted_list.append(self.crowding_distance[i][0])
-        # print(self.crowding_sorted_list)
 
     # 产生新子代，即新父种群
     def produce_newf(self, city):
@@ -314,7 +321,9 @@ class Population:
         # 拥挤度计算，同等级进行比较
         if len(self.individuals) < self.size:
             self.crowding_distance_computation(self.rank_list[i], self.size - len(self.individuals))
-        self.individuals += self.crowding_sorted_list
+            self.individuals += self.crowding_sorted_list
+        for i in range(len(self.individuals)):
+            self.individuals[i] = self.unsQ[self.individuals[i]]
 
     #结果输出
     def Generate_Results(self):
@@ -324,24 +333,39 @@ class Population:
     # 迭代入口
     def run(self, city):
         while self.gen < self.max_gen:
+            print("第"+str(self.gen)+"代种群：")
+            print(self.individuals)
             self.f1(city, self.individuals)
+            print("第" + str(self.gen) + "代个体总路程(f1)：")
+            print(self.total_d)
+            print("第" + str(self.gen) + "代个体平衡系数(f2)：")
+            print(self.balance_factor)
             self.fast_nondominated_sort(N)
             self.unshaped_evolution()
             self.produce_newf(city)
             self.gen += 1
+        print("第" + str(self.gen) + "代种群：")
+        print(self.individuals)
+        self.f1(city, self.individuals)
+        print("第" + str(self.gen) + "代个体总路程(f1)：")
+        print(self.total_d)
+        print("第" + str(self.gen) + "代个体平衡系数(f2)：")
+        print(self.balance_factor)
         # 通过外部接口传送到数据库和web前端
-        self.Generate_Results()
+        # self.Generate_Results()
+        self.plot_final_front()
 
     # Tools
     # 集合取反
     def produce_mutation_set(self, num, list):     #num为可行范围，即全集的长度
         set = []
+        list0 = []
+        for l in list:
+            if l not in list0:
+                list0.append(l)
         for i in range(num):
             set.append(i)
-        for e in list:
-            if list.count(e) > 1:
-                list.remove(e)
-                continue
+        for e in list0:
             set.remove(e)
         return set
 
@@ -391,23 +415,30 @@ class Population:
         list[low] = pivot
         return low
 
+    #图像打印
+    # Lets plot the final front now
+    def plot_final_front(self):
+        total_dsitance = [i * 1 for i in self.total_d]
+        balance_factor = [j * 1 for j in self.balance_factor]
+        plt.xlabel('Total distance', fontsize=15)
+        plt.ylabel('Balance Factor', fontsize=15)
+        plt.scatter(total_dsitance, balance_factor)
+        plt.show()
+
 if __name__ == '__main__':
     # 测试代码
     N = 8  # 染色体数目
     n = 20 # 城市数目
     m = 4  # 旅行商数目
     m_pro = 0.8     # 变异概率
-    c_pro = 0.6     # 交叉概率
-    max_gen = 1   # 最大迭代次数
+    c_pro = 0.2     # 交叉概率
+    max_gen = 100   # 最大迭代次数
     fm_pro = 0.5    # 染色体前段突变概率
     city = City(n)
-    for i in range(n):
-        city.individuals.append([random.randint(0, 100), random.randint(0, 100)])
+    cities = [[34, 53], [96, 62], [29, 21], [10, 48], [14, 3], [3, 64], [13, 77], [48, 13], [69, 53], [79, 13], [26, 33], [85, 43],[63, 56], [2, 57], [69, 93], [79, 31], [35, 35], [26, 96], [60, 47], [30, 74]]
+    city.individuals += cities
+    # for i in range(n):
+    #     city.individuals.append([random.randint(0, 100), random.randint(0, 100)])
     city.cal_distance_matrix()
     p = Population(N, n, m, m_pro, c_pro, max_gen, fm_pro)
     p.run(city)
-
-
-
-# if __name__ == '__main__':
-#
