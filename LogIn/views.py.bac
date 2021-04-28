@@ -1,0 +1,113 @@
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, HttpResponseRedirect
+from django import forms
+from .models import User
+
+# Create your views here.
+def index(request):
+    return render(request, 'unlogged_homepage.html')
+
+def login(request):
+    if request.method == 'GET':
+        return render(request, 'login.html')
+    if request.method == 'POST':
+        # 如果登录成功，绑定参数到cookie中，set_cookie
+        username = request.POST.get('uname')
+        password = request.POST.get('pw')
+        next_url = request.POST.get('next')
+        # 查询用户是否在数据库中
+        if User.objects.filter(uname=username).exists():
+            user = User.objects.get(uname=username)
+            if user.pw == password:
+                request.session['member_id'] = user.id
+                if next_url:
+                    rep =  redirect(next_url)
+                else:
+                    print("ban")
+                    rep = redirect("/home/")
+                rep.set_signed_cookie("is_login", "1", salt="ban", max_age = 100)
+                return rep
+                # # ticket = 'agdoajbfjad'
+                # ticket = ''
+                # for i in range(15):
+                #     s = 'abcdefghijklmnopqrstuvwxyz'
+                #     # 获取随机的字符串
+                #     ticket += random.choice(s)
+                # now_time = int(time.time())
+                # ticket = 'TK' + ticket + str(now_time)
+                # # 绑定令牌到cookie里面
+                # # response = HttpResponse()
+                # response = HttpResponseRedirect('/logged_homepage/')
+                # #max_age 存活时间(秒)
+                # response.set_cookie('ticket', ticket, max_age=10000)
+                # # 存在服务端
+                # user.u_ticket = ticket
+                # user.save() #保存
+                # return render(request, 'home.html')
+            else:
+                # return HttpResponse('用户密码错误')
+                return render(request, 'login.html', {'password': '用户密码错误'})
+        else:
+            # return HttpResponse('用户不存在')
+            return render(request, 'login.html', {'name': '用户不存在'})
+
+def check_login(func):
+    @wraps(func)
+    def inner(request, *args, **kwargs):
+        ret = request.get_signed_cookie("is_login", default="0", salt="ban")    # ban
+        if ret == "1":
+            return func(request, *args, **kwargs)
+        else:
+            next_url = request.path_info
+            return redirect("/login/?next={}".format(next_url))
+    return inner
+
+
+
+def register(request):
+    if request.method == "GET":
+        return render(request, 'register.html')
+    
+def home(request):
+    if request.method == "GET":
+        return render(request, 'home.html')
+
+# def login(request):
+#     if request.method == "POST":
+#         uname = request.POST.get('uname')
+#         print(uname)
+#         pw = request.POST.get('pw')
+#         try:
+#             user = models.User.objects.get(phone_number = uname)
+#             if user.pw == pw:
+#                 return redirect('logged_homepage.html')
+#             else:
+#                 message = "密码不正确！"
+#         except:
+#             message = "用户不存在！"
+#     return render(request, 'login.html', locals())
+
+# #定义表单模型
+# class UserForm(forms.Form):
+#     # phone_number = models.CharField('电话号码', max_length = 12, default = '')
+#     # pw = models.CharField('密码', max_length = 20)
+#     username = forms.CharField(label='用户名：',max_length=12)
+#     password = forms.CharField(label='密码：',widget=forms.PasswordInput())
+
+# #登录
+# def login(request):
+#     if request.method == 'POST':
+#         uf = UserForm(request.POST)
+#         if uf.is_valid():
+#             #获取表单用户密码
+#             username = uf.cleaned_data['uname']
+#             password = uf.cleaned_data['pw']
+#             #获取的表单数据与数据库进行比较
+#             user = User.objects.filter(username__exact = username,password__exact = password)
+#             if user:
+#                 return render_to_response('logged_homepage.html',{'username':username})
+#             else:
+#                 return HttpResponseRedirect('/login/')
+#     else:
+#         uf = UserForm()
+#     return render_to_response('login.html',{'uf':uf})

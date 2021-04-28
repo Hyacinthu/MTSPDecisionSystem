@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" comtent="ie=edge">
+  <meta name="renderer" content="webkit">
+  <base href="/">
+  <title>多旅行商问题决策系统</title>
+  <link rel="stylesheet" type="text/css" href="../static/CSS/login.css?v=1.0"/>
+  <script type="text/javascript" src="../static/JavaScript/login.js?v=1.0"></script>
+</head>
+<body id="loginpage">
+  <!-- 顶部导航栏 -->
+	<div class="navbar">
+		<ul class="navlist">
+			<li><a href="" id="MTSP">多旅行商问题决策系统</a></li>
+      <li><a href="/login" id="login" class="hanz">登录</a></li>
+			<li><a href="/register" id="register" class="hanz">注册</a></li>
+		</ul>
+	</div>
+  <!-- 登录框 -->
+  <div class = "login">
+    <div id="login_content"><h>账号密码登录</h></div>
+    <form method="POST">
+      {% csrf_token %}
+      <div id="uname"><input type="text" required="required" placeholder="请输入邮箱/手机号码" name="uname" id="username" autocomplete="off"></div>
+      <div id="pw"><input type="password" required="required" placeholder="请输入密码" name="pw" id="password" autocomplete="off"></div>
+      <button class="button" id="login_button">登录</button>
+      <ul>
+        <li id="repw_butt"><a href="/retrieve_pw">忘记密码?</a></li>
+        <li id="register_butt"><a href="/register">注册</a></li>
+    </form>
+  </div>
+</body>
+</html>

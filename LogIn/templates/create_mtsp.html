@@ -1,0 +1,51 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <base href="/">
+        <title>多旅行商问题决策系统</title>
+        <link rel="stylesheet" type="text/css" href="../static/CSS/home_navbar.css">
+        <link rel="stylesheet" type="text/css" href="../static/CSS/create_mtsp.css">
+    </head>
+    <body>
+    <!-- 顶部导航栏 -->
+	<div class="navbar">
+	    <ul class="navlist">
+			<li><a href="/home" id="MTSP" class="hanz">多旅行商问题决策系统</a></li>
+            <li><a href="/home/mtsp" id="create_mtsp" class="hanz">创建决策</a></li>
+            <li><a href="/home/load_cities" id="upload_cities" class="hanz">上传城市信息</a></li>
+            <li><a href="/home/history" id="history" class="hanz">历史记录</a></li>
+			<li><a href="/home/self" id="self" class="hanz">个人中心</a></li>
+            <li><a href="http://localhost:8000/" id="logout" class="hanz">注销</a></li>
+		</ul>
+	</div>
+    <!-- 创建决策 -->
+    <div class = "mtsp_input">
+        <form method="POST">
+            <h id="create_mtsp_title">创建决策</h>
+            <br>
+            {% csrf_token %}
+            <!-- 决策名字输入 -->
+            <div class="input_text">
+                <h>输入决策名字：</h>
+                <br>
+                <input class="input" type="text" required="required" placeholder="请输入决策名字" name="solution_title" autocomplete="off">
+            </div>
+            <!-- 城市输入 -->
+            <div class="input_text">
+                <h>输入城市数目n：</h>
+                <br>
+                <input class="input" type="text" required="required" placeholder="请输入城市数目" name="n_num" autocomplete="off">
+            </div>
+            <!-- 旅行商输入 -->
+            <div class="input_text">
+                <h>输入旅行商数目m：</h>
+                <br>
+                <input class="input" type="text" required="required" placeholder="请输入旅行商数目" name="m_num" autocomplete="off">
+            </div>
+            <!-- 按钮 -->
+            <button class="button" id="submit_button">提交</button>
+        </form>
+    </div>
+    </body>
+</html>

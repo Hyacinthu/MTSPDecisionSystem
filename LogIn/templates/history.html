@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <base href="/">
+        <title>多旅行商问题决策系统</title>
+        <link rel="stylesheet" type="text/css" href="../static/CSS/home_navbar.css?v=1.0">
+        <link rel="stylesheet" type="text/css" href="../static/CSS/history.css">
+    </head>
+    <body>
+    <!-- 顶部导航栏 -->
+	<div class="navbar">
+	    <ul class="navlist">
+			<li><a href="/home" id="MTSP" class="hanz">多旅行商问题决策系统</a></li>
+            <li><a href="/home/mtsp" id="create_mtsp" class="hanz">创建决策</a></li>
+            <li><a href="/home/history" id="history" class="hanz">历史记录</a></li>
+			<li><a href="/home/self" id="self" class="hanz">个人中心</a></li>
+            <li><a href="http://localhost:8000/" id="logout" class="hanz">注销</a></li>
+		</ul>
+	</div>
+    </body>
+    <!-- 历史记录 -->
+    <div>
+        {% for decision in decision_list %}
+        <div><span>决策序号：{{decision.id}}</span></div>
+        {% comment %} <div>
+            <span>可供人工筛选的路线：</span>
+            <div>
+                {% for generation in decision.get_generation.solution %}
+                <span>{{result.gen}}:{{result.solution}}</span>
+                {% endfor %}
+            </div>
+        </div> {% endcomment %}
+        {% endfor %}
+    </div>
+</html>

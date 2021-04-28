@@ -1,0 +1,45 @@
+/* 载入城市信息 */
+
+.upload_cities {
+    box-sizing: border-box;
+    box-shadow: 0px 0px 5px 5px #888888;
+    width: 1000px;
+    height: 300px;
+    margin-left: 15%;
+    margin-top: 50px;
+    padding-top: 10px;
+}
+
+#upload_title {
+    font-size: 30px;
+    font-weight: 500;
+    margin-left: 20px;
+}
+
+#upload_text {
+    font-size: 20px;
+    margin-left: 25%;
+    margin-top: 30px;
+}
+
+#city_file_input {
+    margin-left: 25%;
+    margin-top: 20px;
+}
+
+.button {
+    background: #4386f5;
+    color: #fff;
+    padding: 4px 0;
+    height: 40px;
+    line-height: 28px;
+    width: 400px;
+    border-radius: 22px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#upload_button {
+    margin-left: 30%;
+    margin-top: 50px;
+}

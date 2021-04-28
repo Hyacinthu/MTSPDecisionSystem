@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" comtent="ie=edge">
+  <meta name="renderer" content="webkit">
+  <base href="/">
+  <title>多旅行商问题决策系统</title>
+  <link rel="stylesheet" type="text/css" href="../static/CSS/register.css?v=1.0">
+  <script type="text/javascript" src="../static/JavaScript/register.js?v=1.0"></script>
+</head>
+<body id="loginpage">
+  <!-- 顶部导航栏 -->
+	<div class="navbar">
+		<ul class="navlist">
+			<li><a href="" id="MTSP">多旅行商问题决策系统</a></li>
+      <li><a href="/login" id="login" class="hanz">登录</a></li>
+			<li><a href="/register" id="register" class="hanz">注册</a></li>
+		</ul>
+	</div>
+  <!-- 注册 -->
+  <div class = "register" align="center">
+    <div id="content"><h>注册账号</h></div>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="text" required="required" placeholder="电话号码/用户名" name="phonenumber" id="phonenumber">
+      <input type="text" required="required" placeholder="昵称" name="nickname" id="nickname">
+      <input type="password" required="required" placeholder="密码" name="pw" id="pw">
+      <input type="text" required="required" placeholder="电子邮箱" name="email" id="email">
+      <button class="butt" id="register_butt" type="submit">注册</button>
+    </form>
+  </div>
+</body>
+</html>
