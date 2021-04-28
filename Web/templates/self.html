@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <base href="/">
+        <title>多旅行商问题决策系统</title>
+        <link rel="stylesheet" type="text/css" href="../static/CSS/home_navbar.css?v=1.0">
+        <link rel="stylesheet" type="text/css" href="../static/CSS/self.css">
+    </head>
+    <body>
+    <!-- 顶部导航栏 -->
+	<div class="navbar">
+	    <ul class="navlist">
+			<li><a href="/home" id="MTSP" class="hanz">多旅行商问题决策系统</a></li>
+            <li><a href="/home/mtsp" id="create_mtsp" class="hanz">创建决策</a></li>
+            <li><a href="/home/history" id="history" class="hanz">历史记录</a></li>
+			<li><a href="/home/self" id="self" class="hanz">个人中心</a></li>
+            <li><a href="http://localhost:8000/" id="logout" class="hanz">注销</a></li>
+		</ul>
+	</div>
+    <!-- 个人信息 -->
+    <div id="self_information">
+        <span class="ch" id="info">个人信息</span>
+        <div class="ch">
+            <div class="in_content">
+                <span>昵称</span>
+                <span id="nickname">{{ nickname }}</span>
+                <br>
+            </div>
+            <div class="in_content">
+              <span>电话号码</span>
+                <span id="pnumber">{{ phonenumber }}</span>
+                <br>  
+            </div>
+            <div class="in_content">
+                <span>邮箱</span>
+                <span id="email">{{ email }}</span>
+                <br>
+            </div>
+            <div class="in_content"><a href="">更改密码</a></div>
+            <div id="change_info" class="in_content"><a href="">更改个人信息</a></div>
+        </div>
+    </div>
+    </body>
+</html>

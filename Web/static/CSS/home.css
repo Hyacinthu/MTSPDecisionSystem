@@ -1,0 +1,58 @@
+/*主页内容*/
+
+a {
+    text-decoration: none;
+}
+
+.choices {
+    background-image: url(../Images/pic.jpg);
+    background-size: 100%;
+    width: 60%;
+    height: 400px;
+    margin-top: 75px;
+    margin-left: 300px;
+    font-size: 1cm;
+    text-align: center;
+}
+
+.choice {
+    box-sizing: border-box;
+    box-shadow: 0px 0px 5px 5px #888888;
+    padding-top: 65px;
+    width: 50%;
+    height: 50%;
+    letter-spacing: 4px;
+}
+
+#self_block {
+    margin-left: 50.3%;
+    margin-top: -22%;
+}
+
+#history_block {
+    margin-top: 0.5%;
+}
+
+#help_block {
+    margin-left: 50.3%;
+    margin-top: -22%;
+}
+
+
+/* color */
+
+#text1 {
+    color: rgb(4, 5, 90);
+}
+
+#text2 {
+    color: rgb(43, 22, 224);
+}
+
+#text3 {
+    color: rgb(81, 174, 197);
+}
+
+#text4 {
+    color: rgb(35, 230, 236);
+}
